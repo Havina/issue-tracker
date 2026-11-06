@@ -1,0 +1,26 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# Python testing / tooling
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment variables / secrets
+.env
+.env.*
+
+# React / Node
+node_modules/
+dist/
+build/
+
+# IDE / editor
+.vscode/
+.idea/
+
+# Operating system files
+.DS_Store
+Thumbs.db
