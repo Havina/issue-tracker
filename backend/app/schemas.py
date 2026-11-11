@@ -1,6 +1,7 @@
+from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class IssuePriority(str, Enum):
@@ -20,3 +21,14 @@ class IssueCreate(BaseModel):
     description: str | None = None
     priority: IssuePriority = IssuePriority.medium
 
+
+class IssueResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    title: str
+    description: str | None
+    status: IssueStatus
+    priority: IssuePriority
+    created_at: datetime
+    updated_at: datetime
