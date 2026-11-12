@@ -22,6 +22,13 @@ class IssueCreate(BaseModel):
     priority: IssuePriority = IssuePriority.medium
 
 
+class IssueUpdate(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    status: IssueStatus | None = None
+    priority: IssuePriority | None = None
+
+
 class IssueResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
