@@ -33,6 +33,7 @@ class IssueResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    owner_id: int | None
     title: str
     description: str | None
     status: IssueStatus

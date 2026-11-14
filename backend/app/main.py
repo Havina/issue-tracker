@@ -75,6 +75,7 @@ def create_issue(
         title=issue.title,
         description=issue.description,
         priority=issue.priority.value,
+        owner_id=current_user.id,
     )
 
     db.add(db_issue)
@@ -85,12 +86,19 @@ def create_issue(
 
 
 @app.get("/issues", response_model=list[IssueResponse])
-def get_issues(db: Session = Depends(get_db)):
+def get_issues(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     return db.query(Issue).all()
 
 
 @app.get("/issues/{issue_id}", response_model=IssueResponse)
-def get_issue(issue_id: int, db: Session = Depends(get_db)):
+def get_issue(
+    issue_id: int, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     issue = db.get(Issue, issue_id)
 
     if issue is None:
@@ -118,6 +126,12 @@ def update_issue(
     if issue is None:
         raise HTTPException(status_code=404, detail="Issue not found")
 
+    if issue.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not allowed to update this issue",
+        )
+
     update_data = issue_update.model_dump(exclude_unset=True)
 
     for field, value in update_data.items():
@@ -142,6 +156,12 @@ def delete_issue(
 
     if issue is None:
         raise HTTPException(status_code=404, detail="Issue not found")
+
+    if issue.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not allowed to delete this issue",
+        )
 
     db.delete(issue)
     db.commit()
