@@ -10,9 +10,9 @@ class Issue(Base):
     __tablename__ = "issues"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    owner_id: Mapped[int | None] = mapped_column(
+    owner_id: Mapped[int] = mapped_column(
         ForeignKey("users.id"),
-        nullable=True,
+        nullable=False,
     )
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
