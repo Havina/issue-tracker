@@ -14,6 +14,12 @@ class Issue(Base):
         ForeignKey("users.id"),
         nullable=False,
     )
+
+    assignee_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id"),
+        nullable=True,
+    )
+
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(20), default="open", nullable=False)

@@ -125,14 +125,37 @@ def update_issue(
 
     if issue is None:
         raise HTTPException(status_code=404, detail="Issue not found")
-
-    if issue.owner_id != current_user.id:
-        raise HTTPException(
-            status_code=403,
-            detail="You are not allowed to update this issue",
-        )
+    
 
     update_data = issue_update.model_dump(exclude_unset=True)
+
+    is_owner = issue.owner_id == current_user.id
+    is_assginee = issue.assignee_id == current_user.id
+
+    if not is_owner:
+        if not is_assginee:
+            raise HTTPException(
+                status_code=403,
+                detail="You are not allowed to update this issue",
+            )
+
+        if set(update_data.keys()) != {"status"}:
+            raise HTTPException(
+                status_code=403,
+                detail="Assignees can only update issue status",
+            )
+
+    if "assignee_id" in update_data:
+        assignee_id = update_data["assignee_id"]
+
+        if assignee_id is not None:
+            assignee = db.get(User, assignee_id)
+
+            if assignee is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Assignee not found",
+                )
 
     for field, value in update_data.items():
         if hasattr(value, "value"):

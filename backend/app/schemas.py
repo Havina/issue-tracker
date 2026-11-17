@@ -27,6 +27,7 @@ class IssueUpdate(BaseModel):
     description: str | None = None
     status: IssueStatus | None = None
     priority: IssuePriority | None = None
+    assignee_id: int | None = None
 
 
 class IssueResponse(BaseModel):
@@ -34,6 +35,7 @@ class IssueResponse(BaseModel):
 
     id: int
     owner_id: int
+    assignee_id: int | None
     title: str
     description: str | None
     status: IssueStatus
