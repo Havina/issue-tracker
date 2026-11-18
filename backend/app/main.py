@@ -8,7 +8,9 @@ from app.database import get_db
 from app.models import Issue, User
 from app.schemas import (
     IssueCreate,
-    IssueResponse, 
+    IssuePriority,
+    IssueResponse,
+    IssueStatus,
     IssueUpdate,
     TokenResponse,
     UserCreate,
@@ -87,10 +89,28 @@ def create_issue(
 
 @app.get("/issues", response_model=list[IssueResponse])
 def get_issues(
+    status: IssueStatus | None = None,
+    priority: IssuePriority | None = None,
+    assignee_id: int | None = None,
+    search: str | None = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return db.query(Issue).all()
+    query = db.query(Issue)
+
+    if status is not None:
+        query = query.filter(Issue.status == status.value)
+
+    if priority is not None:
+        query = query.filter(Issue.priority == priority.value)
+
+    if assignee_id is not None:
+        query = query.filter(Issue.assignee_id == assignee_id)
+
+    if search is not None:
+        query = query.filter(Issue.title.ilike(f"%{search}%"))
+
+    return query.all()
 
 
 @app.get("/issues/{issue_id}", response_model=IssueResponse)
