@@ -66,3 +66,30 @@ class User(Base):
         onupdate=func.now(),
         nullable=False,
     )
+
+
+class Comment(Base):
+    __tablename__ = "comments"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    issue_id: Mapped[int] = mapped_column(
+        ForeignKey("issues.id"),
+        nullable=False,
+    )
+
+    author_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id"),
+        nullable=False,
+    )
+
+    body: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        server_default=func.now(),
+        nullable=False,
+    )

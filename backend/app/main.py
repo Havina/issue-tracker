@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Issue, User
+from app.models import Comment, Issue, User
 from app.schemas import (
     IssueCreate,
     IssueListResponse,
@@ -13,6 +13,8 @@ from app.schemas import (
     IssueResponse,
     IssueStatus,
     IssueUpdate,
+    CommentCreate,
+    CommentResponse,
     TokenResponse,
     UserCreate,
     UserLogin,
@@ -209,6 +211,90 @@ def update_issue(
     db.refresh(issue)
 
     return issue
+
+
+@app.post(
+        "/issues/{issue_id}/comments",
+        response_model=CommentResponse,
+        status_code=201
+)
+def create_commment(
+    issue_id: int,
+    comment: CommentCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    issue = db.get(Issue, issue_id)
+
+    if issue is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Issue not found"
+        )
+
+    db_comment = Comment(
+        issue_id =issue_id,
+        author_id =current_user.id,
+        body=comment.body,
+    )
+
+    db.add(db_comment)
+    db.commit()
+    db.refresh(db_comment)
+
+    return db_comment
+
+
+@app.get(
+    "/issues/{issue_id}/comments",
+    response_model=list[CommentResponse],
+)
+def get_comments(
+    issue_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    issue = db.get(Issue, issue_id)
+
+    if issue is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Issue not found",
+        )
+
+    return (
+        db.query(Comment)
+        .filter(Comment.issue_id == issue_id)
+        .order_by(Comment.id)
+        .all()
+    )
+
+@app.delete(
+    "/issues/{issue_id}/comments/{comment_id}",
+    status_code=204,
+)
+def delete_comment(
+    issue_id: int,
+    comment_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    comment = db.get(Comment, comment_id)
+
+    if comment is None or comment.issue_id != issue_id:
+        raise HTTPException(
+            status_code=404,
+            detail="Comment not found",
+        )
+
+    if comment.author_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not allowed to delete this comment",
+        )
+
+    db.delete(comment)
+    db.commit()
 
 
 @app.delete("/issues/{issue_id}", status_code=204)

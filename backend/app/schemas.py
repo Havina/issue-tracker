@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class IssuePriority(str, Enum):
@@ -48,6 +48,19 @@ class IssueListResponse(BaseModel):
     total: int
     limit: int
     offset: int
+
+class CommentCreate(BaseModel):
+    body: str = Field(min_length=1, max_length=2000)
+
+
+class CommentResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    issue_id: int
+    author_id: int
+    body: str
+    created_at: datetime
 
 
 class UserCreate(BaseModel):
