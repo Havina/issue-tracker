@@ -8,6 +8,7 @@ from app.database import get_db
 from app.models import Issue, User
 from app.schemas import (
     IssueCreate,
+    IssueListResponse,
     IssuePriority,
     IssueResponse,
     IssueStatus,
@@ -87,7 +88,7 @@ def create_issue(
     return db_issue
 
 
-@app.get("/issues", response_model=list[IssueResponse])
+@app.get("/issues", response_model=IssueListResponse)
 def get_issues(
     status: IssueStatus | None = None,
     priority: IssuePriority | None = None,
@@ -116,7 +117,22 @@ def get_issues(
     if search is not None:
         query = query.filter(Issue.title.ilike(f"%{search}%"))
 
-    return query.order_by(Issue.id).offset(offset).limit(limit).all()
+    total = query.count()
+
+    items = (
+        query
+        .order_by(Issue.id)
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+
+    return {
+        "items": items,
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+    }
 
 
 @app.get("/issues/{issue_id}", response_model=IssueResponse)
