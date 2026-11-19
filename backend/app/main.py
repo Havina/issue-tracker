@@ -1,5 +1,5 @@
 import jwt
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -92,7 +92,10 @@ def get_issues(
     status: IssueStatus | None = None,
     priority: IssuePriority | None = None,
     assignee_id: int | None = None,
+    owner_id: int | None = None,
     search: str | None = None,
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -107,10 +110,13 @@ def get_issues(
     if assignee_id is not None:
         query = query.filter(Issue.assignee_id == assignee_id)
 
+    if owner_id is not None:
+        query = query.filter(Issue.owner_id == owner_id)
+
     if search is not None:
         query = query.filter(Issue.title.ilike(f"%{search}%"))
 
-    return query.all()
+    return query.order_by(Issue.id).offset(offset).limit(limit).all()
 
 
 @app.get("/issues/{issue_id}", response_model=IssueResponse)
