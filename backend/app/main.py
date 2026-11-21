@@ -15,6 +15,7 @@ from app.schemas import (
     IssueUpdate,
     CommentCreate,
     CommentResponse,
+    CommentUpdate,
     TokenResponse,
     UserCreate,
     UserLogin,
@@ -268,6 +269,40 @@ def get_comments(
         .order_by(Comment.id)
         .all()
     )
+
+
+@app.patch(
+    "/issues/{issue_id}/comments/{comment_id}",
+    response_model=CommentResponse,
+)
+def update_comment(
+    issue_id: int,
+    comment_id: int,
+    comment_update: CommentUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    comment = db.get(Comment, comment_id)
+
+    if comment is None or comment.issue_id != issue_id:
+        raise HTTPException(
+            status_code=404,
+            detail="Comment not found",
+        )
+
+    if comment.author_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not allowed to update this comment",
+        )
+
+    comment.body = comment_update.body
+
+    db.commit()
+    db.refresh(comment)
+
+    return comment
+
 
 @app.delete(
     "/issues/{issue_id}/comments/{comment_id}",

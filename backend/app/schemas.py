@@ -43,13 +43,19 @@ class IssueResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+
 class IssueListResponse(BaseModel):
     items: list[IssueResponse]
     total: int
     limit: int
     offset: int
 
+
 class CommentCreate(BaseModel):
+    body: str = Field(min_length=1, max_length=2000)
+
+
+class CommentUpdate(BaseModel):
     body: str = Field(min_length=1, max_length=2000)
 
 
