@@ -67,6 +67,7 @@ class CommentResponse(BaseModel):
     author_id: int
     body: str
     created_at: datetime
+    updated_at: datetime
 
 
 class UserCreate(BaseModel):
